@@ -4,59 +4,40 @@ import { fetchWeather } from './api/fetchWeather';
 import './App.css';
 
 const App = () => {
-	const [query, setQuery] = useState('Amsterdam');
+	const [query, setQuery] = useState('');
 	const [weather, setWeather] = useState({});
 
-	// const search = async (e) => {
-	// 	if (e.key === 'Enter') {
-	// 		const data = await fetchWeather(query);
+	const submitForm = async (e) => {
+		if (query.length < 2) {
+			console.log('true');
+			return;
+		}
+		const data = await fetchWeather(query);
 
-	// 		const cache = await caches.open('weather-data');
-	// 		await cache.put(
-	// 			'https://api.openweathermap.org/data/2.5/weather',
-	// 			new Response(JSON.stringify(data))
-	// 		);
+		// Generate a unique key for each data object based on some identifier
+		const cacheKey = `weather-data-${query}`;
 
-	// 		setWeather(data);
-	// 		setQuery('');
-	// 	}
-	// };
+		const cache = await caches.open('weather-data');
+		await cache.put(cacheKey, new Response(JSON.stringify(data)));
+
+		setWeather(data);
+		setQuery('');
+	};
 
 	useEffect(() => {
 		const fetchData = async () => {
 			try {
-				const cache = await caches.open('weather-data-1.26');
+				const cache = await caches.open('weather-data');
 				const weatherApiUrl = 'https://api.openweathermap.org/data/2.5/weather';
-
-				// const cachedResponse = await cache.match(weatherApiUrl);
-				const cachedResponse = await cache.match(weatherApiUrl);
-				console.log('AAAAAAA', cachedResponse);
-
-				if (cachedResponse) {
-					const cachedData = await cachedResponse.json();
-					console.log('cachedData', cachedData);
-					setWeather(cachedData);
-				}
 
 				// Check if the page is offline
 				if (navigator.onLine === false) {
 					const cachedResponse = await cache.match(weatherApiUrl);
 					const cachedData = await cachedResponse.json();
-					console.log('CCCCCCC', cachedData);
-
+					setWeather(cachedData);
 					// If offline, use the cached data
-					console.log('Offline mode');
 					return;
 				}
-
-				// Fetch fresh data only when online
-				const freshData = await fetchWeather(query);
-
-				// Cache the new data with the correct cache key (weather API URL)
-				await cache.put(weatherApiUrl, new Response(JSON.stringify(freshData)));
-
-				// Update the component state with the fresh data
-				setWeather(freshData);
 			} catch (error) {
 				console.error('Error fetching data:', error);
 			}
@@ -74,6 +55,7 @@ const App = () => {
 				value={query}
 				onChange={(e) => setQuery(e.target.value)}
 			/>
+			<button onClick={submitForm}>SUBMIT</button>
 			{weather.main && (
 				<div className="city">
 					<h2 className="city-name">

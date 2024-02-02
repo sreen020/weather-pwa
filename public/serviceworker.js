@@ -1,10 +1,19 @@
-const CACHE_NAME = 'version-1.26';
-const dynamicCache = 'dynamic-version-1.26';
+const CACHE_NAME = 'version-1.42';
+const dynamicCache = 'dynamic-version-1.42';
 const urlsToCache = [
+	'/',
+	'/detail',
 	'index.html',
-	'offline.html',
+	'manifest.json',
 	'/images/bg.jpg',
 	'/images/logo.png',
+	'../src/App.css',
+	'../src/Detail.jsx',
+	'../src/error-page.jsx',
+	'../src/Home.jsx',
+	'../src/index.js',
+	'../src/routes/root.jsx',
+	'../src/api/fetchWeather.js',
 ];
 
 self.addEventListener('install', (event) => {
@@ -27,11 +36,10 @@ self.addEventListener('fetch', (event) => {
 				return (
 					response ||
 					fetch(event.request).then((response) => {
-						// return caches.open(dynamicCache).then((cache) => {
-						// 	cache.put(event.request.url, response.clone());
-						// 	return response;
-						// });
-						return response;
+						return caches.open(dynamicCache).then((cache) => {
+							cache.put(event.request.url, response.clone());
+							return response;
+						});
 					})
 				);
 			})
@@ -42,7 +50,7 @@ self.addEventListener('fetch', (event) => {
 });
 
 self.addEventListener('activate', (event) => {
-	const cacheWhitelist = [CACHE_NAME, dynamicCache, 'weather-data-1.26'];
+	const cacheWhitelist = [CACHE_NAME, dynamicCache, 'weather-data'];
 
 	event.waitUntil(
 		caches.keys().then((cacheNames) =>
